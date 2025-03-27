@@ -1,0 +1,1 @@
+ C:\\Users\\JOSHUA\\Desktop\\Energy-Management\\.dart_tool\\flutter_build\\15672344816b91027b206790d263dfd7\\native_assets.yaml: 
