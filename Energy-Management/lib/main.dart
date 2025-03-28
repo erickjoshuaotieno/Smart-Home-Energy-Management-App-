@@ -26,7 +26,7 @@ class EnergyManagement extends StatelessWidget {
           themeMode:
               themeProvider.isDarkMode ? ThemeMode.dark : ThemeMode.light,
           title: 'Energy Management',
-          home: MyBottomNavBar(),
+          home: HomePage(),
         );
       },
     );

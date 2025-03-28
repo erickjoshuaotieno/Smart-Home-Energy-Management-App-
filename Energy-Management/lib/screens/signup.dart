@@ -1,4 +1,9 @@
+// Part 1: Imports and SignUpPage class definition
+import 'package:energy_management/screens/login.dart';
 import 'package:flutter/material.dart';
+import 'package:dio/dio.dart';
+
+
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
 
@@ -7,14 +12,80 @@ class SignUpPage extends StatefulWidget {
 }
 
 class _SignUpPageState extends State<SignUpPage> {
+  // Part 2: Text controllers and form key
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
-  TextEditingController();
+      TextEditingController();
   final _formKey = GlobalKey<FormState>();
+
+  // Part 3: Password visibility variables
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
 
+  // Part 4: _signUp function (email check and sign-up)
+  Future<void> _signUp() async {
+    if (_formKey.currentState?.validate() ?? false) {
+      try {
+        final dio = Dio();
+
+        // Check for existing email
+        final emailCheckResponse = await dio.get(
+          'https://eco-auth-3a384-default-rtdb.firebaseio.com/users.json',
+        );
+
+        if (emailCheckResponse.statusCode == 200 &&
+            emailCheckResponse.data != null) {
+          final users = emailCheckResponse.data as Map<String, dynamic>;
+          for (var user in users.values) {
+            if (user['email'] == _emailController.text) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Email already exists. Try again.'),
+                ),
+              );
+              return; // Stop the function
+            }
+          }
+        }
+
+        // Email is unique, proceed with sign-up
+        final response = await dio.post(
+          'https://eco-auth-3a384-default-rtdb.firebaseio.com/users.json',
+          data: {
+            'email': _emailController.text,
+            'password': _passwordController.text,
+          },
+        );
+
+        if (response.statusCode == 200) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sign Up Successful!'),
+            ),
+          );
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => LoginPage()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Sign Up Failed. Please try again.'),
+            ),
+          );
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: $e'),
+          ),
+        );
+      }
+    }
+  }
+
+  // Part 5: build method (Scaffold, AppBar, Form)
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,7 +102,7 @@ class _SignUpPageState extends State<SignUpPage> {
           ),
         ),
         iconTheme: const IconThemeData(
-          color: Color(0xFFB3E5FC), // Set back arrow color
+          color: Color(0xFFB3E5FC),
         ),
       ),
       body: Center(
@@ -57,6 +128,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     ),
                   ),
                   const SizedBox(height: 40),
+
+                  // Part 6: Email TextFormField
                   TextFormField(
                     controller: _emailController,
                     style: const TextStyle(color: Colors.white),
@@ -82,6 +155,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 20),
+
+                  // Part 7: Password TextFormField
                   TextFormField(
                     controller: _passwordController,
                     obscureText: !_isPasswordVisible,
@@ -121,6 +196,8 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 20),
+
+                  // Part 8: Confirm Password TextFormField
                   TextFormField(
                     controller: _confirmPasswordController,
                     obscureText: !_isConfirmPasswordVisible,
@@ -135,7 +212,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         borderSide: BorderSide.none,
                       ),
                       prefixIcon:
-                      const Icon(Icons.lock_outline, color: Colors.white),
+                          const Icon(Icons.lock_outline, color: Colors.white),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _isConfirmPasswordVisible
@@ -146,7 +223,7 @@ class _SignUpPageState extends State<SignUpPage> {
                         onPressed: () {
                           setState(() {
                             _isConfirmPasswordVisible =
-                            !_isConfirmPasswordVisible;
+                                !_isConfirmPasswordVisible;
                           });
                         },
                       ),
@@ -162,17 +239,10 @@ class _SignUpPageState extends State<SignUpPage> {
                     },
                   ),
                   const SizedBox(height: 30),
+
+                  // Part 9: ElevatedButton for Sign Up
                   ElevatedButton(
-                    onPressed: () {
-                      if (_formKey.currentState?.validate() ?? false) {
-                        // Add sign-up functionality here
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Sign Up Successful!'),
-                          ),
-                        );
-                      }
-                    },
+                    onPressed: _signUp,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 40, vertical: 15),
